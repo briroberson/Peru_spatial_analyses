@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<GroundOverlay>
+	<name>Seimon et al 2017 isolines </name>
+	<color>85ffffff</color>
+	<Icon>
+		<href>files/Figure 1C Seimon et al EE isolines.jpg</href>
+		<viewBoundScale>0.75</viewBoundScale>
+	</Icon>
+	<gx:LatLonQuad>
+		<coordinates>
+			-71.11021270219314,-13.79423710372213,0 -71.06447438936961,-13.79488800855544,0 -71.06613216621244,-13.73310406211401,0 -71.11041039506044,-13.73223204004915,0 
+		</coordinates>
+	</gx:LatLonQuad>
+</GroundOverlay>
+</kml>
