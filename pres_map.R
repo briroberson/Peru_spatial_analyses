@@ -14,6 +14,12 @@ library(gridExtra)
 library(metR)
 library(isoband)
 library(ggsflabel)
+library(rnaturalearth)
+library(cowplot)
+library(ggspatial)
+library(geodata)
+library(terra)
+library(prettymapr)
 
 
 #load in points
@@ -583,3 +589,83 @@ all_points_old <- all_points %>%
   filter(year > 0)
 
 all_points_in <- all_points[all_points$year != 0, ]
+
+
+##SOIL MANUSCRIPT PLOT
+
+#make the inset 
+
+peru <- ne_countries(country = "Peru", returnclass = "sf")
+#Centroid of latrine points
+study_site <- st_centroid(st_union(soil_points))
+study_site <- st_transform(study_site, 4326)
+basemap2 <- get_tiles(
+  peru,
+  provider = "Esri.OceanBasemap",
+  zoom = 5)
+basemap_masked <- mask(basemap, peru_v)
+bm <- as.data.frame(basemap_masked, xy = TRUE, na.rm = TRUE)
+bm$col <- rgb(bm[[3]], bm[[4]], bm[[5]], maxColorValue = 255)
+
+peru_inset <- ggplot() +
+  geom_raster(
+    data = bm,
+    aes(x = x, y = y, fill = col)
+  ) +
+  scale_fill_identity() +
+  geom_sf(data = study_site, color = "red", size = 2) +
+  coord_sf(
+    xlim = range(bm$x),
+    ylim = range(bm$y),
+    expand = FALSE
+  ) +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    plot.margin = margin(0, 0, 0, 0, "cm"),
+    panel.grid = element_blank(),
+    panel.background = element_rect(
+      fill = "#80b1d3",
+      color = "black",
+      linewidth = 0.5))
+  peru_inset
+
+
+
+#Main plot 
+manu_plot <- ggplot() +
+  annotation_raster(
+    basemap_raster,
+    xmin = bbox["xmin"],
+    xmax = bbox["xmax"],
+    ymin = bbox["ymin"],
+    ymax = bbox["ymax"]
+  ) +
+  geom_sf(data = latrine_pts_sf, color = "white", size = 1.5) +
+  geom_sf(data = soil_points, color = "#b3de69", size = 1.5) +
+  coord_sf(
+    xlim = c(bbox["xmin"], bbox["xmax"]),
+    ylim = c(bbox["ymin"], bbox["ymax"]),
+    expand = FALSE, label_graticule = "SW") +
+  annotation_scale(
+    location = "bl",      # bottom left
+    width_hint = 0.25, text_col = "white",
+    line_col = "white" , text_face = "bold") +
+  annotation_north_arrow(
+    location = "br",      # top right
+    which_north = "true",
+    style = north_arrow_orienteering(text_col = "white", line_col = "white")) +
+  labs(x = "Longitude", y = "Latitude") + 
+  theme_minimal()
+manu_plot
+
+manu_plot_combo <- ggdraw() +
+  draw_plot(manu_plot) +
+  draw_plot(
+    peru_inset,
+    x = 0.52, y = 0.72,  
+    width = 0.25,
+    height = 0.25)
+manu_plot_combo
+
