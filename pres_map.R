@@ -678,10 +678,10 @@ manu_plot <- ggplot() +
   labs(x = "Longitude", y = "Latitude")+ 
   theme_bw() +
   theme(legend.position = "none", 
-        axis.title.y = element_text(face="bold", size = 18), 
+        axis.title.y = element_text(face="bold", size = 18,  margin = margin(r = 15)), 
         axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
-        axis.title.x = element_text(size = 18, face = "bold", color = "black"))
+        axis.title.x = element_text(size = 18, face = "bold", color = "black", margin = margin(t = 15)))
 
 manu_plot
 
@@ -689,7 +689,7 @@ manu_plot_combo <- ggdraw() +
   draw_plot(manu_plot) +
   draw_plot(
     peru_inset,
-    x = 0.52, y = 0.72,  
+    x = 0.53, y = 0.73,  
     width = 0.25,
     height = 0.25)
 manu_plot_combo
