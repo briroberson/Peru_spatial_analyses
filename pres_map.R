@@ -594,18 +594,23 @@ all_points_in <- all_points[all_points$year != 0, ]
 ##SOIL MANUSCRIPT PLOT
 
 #make the inset 
-
+south_america <- ne_countries(
+  continent = "South America",
+  returnclass = "sf")
 peru <- ne_countries(country = "Peru", returnclass = "sf")
 #Centroid of latrine points
 study_site <- st_centroid(st_union(soil_points))
 study_site <- st_transform(study_site, 4326)
 basemap2 <- get_tiles(
-  peru,
+  south_america,
   provider = "Esri.OceanBasemap",
-  zoom = 5)
+  zoom = 4)
+
 basemap_masked <- mask(basemap, peru_v)
 bm <- as.data.frame(basemap_masked, xy = TRUE, na.rm = TRUE)
+bm <- as.data.frame(basemap2, xy = TRUE, na.rm = TRUE)
 bm$col <- rgb(bm[[3]], bm[[4]], bm[[5]], maxColorValue = 255)
+peru_label <- st_point_on_surface(peru)
 
 peru_inset <- ggplot() +
   geom_raster(
@@ -613,24 +618,37 @@ peru_inset <- ggplot() +
     aes(x = x, y = y, fill = col)
   ) +
   scale_fill_identity() +
-  geom_sf(data = study_site, color = "red", size = 2) +
-  coord_sf(
-    xlim = range(bm$x),
-    ylim = range(bm$y),
-    expand = FALSE
+  geom_sf(data = peru, fill = NA, color = "black", linewidth = 0.65) +
+  geom_sf(
+    data = study_site,
+    color = "white",
+    size = 3.25
   ) +
+  geom_sf(
+    data = study_site,
+    color = "#5D978E",
+    size = 2.25
+  ) + 
+  coord_sf(
+    xlim = c(-82, -67),
+    ylim = c(-19, 1),
+    expand = FALSE ) +
+  theme_void() +
   theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.title = element_blank(),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    panel.grid = element_blank(),
-    panel.background = element_rect(
-      fill = "#80b1d3",
-      color = "black",
-      linewidth = 0.5))
+    panel.border = element_rect(color = "black", fill = NA)) + 
+  geom_sf_text(
+    data = peru_label,
+    aes(x = -74.75, y = -4, label = "Peru"),
+    size = 4.75,
+    fontface = "bold",
+    color = "black"
+  )
   peru_inset
 
+#add points with cameras for color scheme
+cameras <- c("L23 56","L23 57B","L23 58","L23 75","L23 77","L23 78","L23 79","L23 80","L23 81","L23 81","L23 83","L23 83","L23 84","L23 84","L23 85","L23 86","L23 87","L23 91","L23 93","L23 94")
+
+soil_points$cameras <- ifelse(soil_points$Name %in% cameras, "yes", "no")
 
 
 #Main plot 
@@ -643,7 +661,8 @@ manu_plot <- ggplot() +
     ymax = bbox["ymax"]
   ) +
   geom_sf(data = latrine_pts_sf, color = "white", size = 1.5) +
-  geom_sf(data = soil_points, color = "#b3de69", size = 1.5) +
+  geom_sf(data = soil_points, aes(fill = cameras), shape = 21, color = "white", size = 2, stroke = 0.8) +
+  scale_fill_manual(values = c("no" = "#5D978E", "yes" = "#F7A7A0")) + 
   coord_sf(
     xlim = c(bbox["xmin"], bbox["xmax"]),
     ylim = c(bbox["ymin"], bbox["ymax"]),
@@ -651,13 +670,19 @@ manu_plot <- ggplot() +
   annotation_scale(
     location = "bl",      # bottom left
     width_hint = 0.25, text_col = "white",
-    line_col = "white" , text_face = "bold") +
+    line_col = "black" , text_face = "bold") +
   annotation_north_arrow(
     location = "br",      # top right
     which_north = "true",
-    style = north_arrow_orienteering(text_col = "white", line_col = "white")) +
-  labs(x = "Longitude", y = "Latitude") + 
-  theme_minimal()
+    style = north_arrow_orienteering(text_col = "white", line_col = "black", text_face = "bold")) +
+  labs(x = "Longitude", y = "Latitude")+ 
+  theme_bw() +
+  theme(legend.position = "none", 
+        axis.title.y = element_text(face="bold", size = 18), 
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.x = element_text(size = 18, face = "bold", color = "black"))
+
 manu_plot
 
 manu_plot_combo <- ggdraw() +
